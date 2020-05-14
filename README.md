@@ -1,2 +1,2 @@
-# Multiplayer-Snack
+# Multiplayer-Snake
 Multiplayer game
