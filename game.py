@@ -1,4 +1,5 @@
 import pygame 
+from pygame.locals import *
 
 RIGHT = 0
 LEFT = 1
@@ -36,6 +37,22 @@ class Screen:
         pygame.draw.rect(self.screen, fruit.color, fruit.rect)
 
 
+class KeyboardHandle:
+
+    def __init__(self):
+        self.observers = []
+
+    def subscribe(self, observerFunction):
+        self.observers.append(observerFunction)
+
+    def notifyAll(self, command):
+        for observerFunction in self.observers:
+            observerFunction(command)
+
+    def notifyEvent(self):
+        for event in pygame.event.get():
+            self.notifyAll(event)
+
 class Player:
 
     def __init__(self, posX, posY, color=BLACK):
@@ -68,23 +85,39 @@ class Game:
         self.limitX = limitX
         self.limitY = limitY
 
+        self.acceptedMoves = {
+            K_UP:self.moveUp,
+            K_DOWN:self.moveDown,
+            K_LEFT:self.moveLeft,
+            K_RIGHT:self.moveRight,
+        }
+    
+    def chooseMove(self, command):
+        if command.type == KEYDOWN:
+            moveFunc = self.acceptedMoves.get(command.key)
+            try:
+                moveFunc()
+            
+            except TypeError:
+                print('[Game] Key not accepted')
+
     def moveUp(self):
-        print('Moving to Up')
+        print('[Game] Moving to Up')
 
     def moveDown(self):
-        print('Moving to Down')
+        print('[Game] Moving to Down')
 
     def moveLeft(self):
-        print('Moving to Left')
+        print('[Game] Moving to Left')
 
     def moveRight(self):
-        print('Moving to Right')
+        print('[Game] Moving to Right')
 
     def checkCollision(self):
-        print('collision')
+        print('[Game] collision')
 
     def outLimit(self):
-        print('out')
+        print('[Game] out')
 
 if __name__ == '__main__':
     screenLimitX = 500
@@ -92,8 +125,11 @@ if __name__ == '__main__':
     screen = Screen(screenLimitX, screenLimitY)
     screen.createScreen()
     game = Game(screenLimitX, screenLimitY)
+    keyboardInput = KeyboardHandle()
+    keyboardInput.subscribe(game.chooseMove)
 
     while True:
+        keyboardInput.notifyEvent()
         screen.drawPlayer(game.player)
         screen.drawFruit(game.fruit)
         screen.updateScreen()
