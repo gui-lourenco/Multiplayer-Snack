@@ -84,6 +84,7 @@ class Game:
         self.fruit = Fruit()
         self.limitX = limitX
         self.limitY = limitY
+        self.runnig = True
 
         self.acceptedMoves = {
             K_UP:self.moveUp,
@@ -119,6 +120,10 @@ class Game:
     def outLimit(self):
         print('[Game] out')
 
+    def quitGame(self, command):
+        if command.type == QUIT:
+            self.runnig = False
+
 if __name__ == '__main__':
     screenLimitX = 500
     screenLimitY = 500
@@ -127,9 +132,12 @@ if __name__ == '__main__':
     game = Game(screenLimitX, screenLimitY)
     keyboardInput = KeyboardHandle()
     keyboardInput.subscribe(game.chooseMove)
+    keyboardInput.subscribe(game.quitGame)
 
-    while True:
+    while game.runnig:
         keyboardInput.notifyEvent()
         screen.drawPlayer(game.player)
         screen.drawFruit(game.fruit)
         screen.updateScreen()
+
+    pygame.quit()
