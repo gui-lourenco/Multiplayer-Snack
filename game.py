@@ -75,9 +75,11 @@ class Player:
         RIGHT:LEFT
     }
 
-    def __init__(self, posX, posY, color=BLACK):
+    def __init__(self, posX, posY, limitX, limitY, color=BLACK):
         width = 10
         heigth = 10
+        self.limitX = limitX
+        self.limitY = limitY
         self.body = [(posX, posY), (posX+10, posY), (posX+20,posY)] 
         self.color = color
         self.skin = pygame.Surface((width,heigth))
@@ -133,8 +135,26 @@ class Player:
             previewX = self.body[i-1][0]
             previewY = self.body[i-1][1]
             self.body[i] = (previewX, previewY)
-       
+        
+        self.outLimit()
         self.move()
+
+    def outLimit(self):
+        if self.body[0][0] < -10:
+            self.body[0] = (self.limitX , self.body[0][1])
+            print('[Game] out')
+
+        elif self.body[0][0] > self.limitX:
+            self.body[0] = (-10 , self.body[0][1])
+            print('[Game] out')
+
+        elif self.body[0][1] < -10:
+            self.body[0] = (self.body[0][0], self.limitY)
+            print('[Game] out')
+
+        elif self.body[0][1] > self.limitY:
+            self.body[0] = (self.body[0][0], -10)
+            print('[Game] out')
 
 class Fruit:
 
@@ -151,7 +171,7 @@ class Game:
 
     def __init__(self, limitX, limitY):
         self.clock = pygame.time.Clock()
-        self.player = Player(10,10)
+        self.player = Player(10,10, limitX, limitY)
         self.fruit = Fruit(limitX//2, limitY//2)
         self.limitX = limitX
         self.limitY = limitY
@@ -196,9 +216,6 @@ class Game:
         posX, posY = x//10 * 10, y//10 * 10
         self.fruit = Fruit(posX, posY)
         
-        
-    def outLimit(self):
-        print('[Game] out')
 
     def quitGame(self, command):
         if command.type == QUIT:
