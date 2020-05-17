@@ -16,6 +16,7 @@ class Screen:
         self.heigth = heigth
         self.width = width
         self.color = color
+        self.context = {}
 
     def createScreen(self): 
         screenDim = (self.width, self.heigth)
@@ -26,7 +27,18 @@ class Screen:
     def setColor(self, color):
         self.color = color
 
+    def addContext(self, contextFunc, *args):
+        self.context[contextFunc] = args
+
     def updateScreen(self):
+        self.screen.fill(self.color)
+        for drawContextFunc, args in self.context.items():
+            if args != None:
+                drawContextFunc(*args)
+
+            else:
+                drawContextFunc()
+
         pygame.display.update()
     
     def drawPlayer(self, player):
@@ -55,6 +67,13 @@ class KeyboardHandle:
 
 class Player:
 
+    oposed = {
+        UP:DOWN,
+        DOWN:UP,
+        LEFT:RIGHT,
+        RIGHT:LEFT
+    }
+
     def __init__(self, posX, posY, color=BLACK):
         width = 10
         heigth = 10
@@ -63,7 +82,44 @@ class Player:
         self.skin = pygame.Surface((width,heigth))
         self.skin.fill((color))
         self.direction = LEFT
+        self.moveTo = {
+            UP:self.moveUp,
+            DOWN:self.moveDown,
+            LEFT:self.moveLeft,
+            RIGHT:self.moveRight
+        }
 
+    def setDirection(self, direction):
+        if self.direction != Player.oposed[direction]:
+            self.direction = direction
+
+    def move(self):
+        moveFunc = self.moveTo[self.direction]
+        moveFunc()
+
+    def moveUp(self):
+        self.body[0] = (self.body[0][0], self.body[0][1] - 10)
+        print('[Game] Moving to Up')
+
+    def moveDown(self):
+        self.body[0] = (self.body[0][0], self.body[0][1] + 10)
+        print('[Game] Moving to Down')
+
+    def moveLeft(self):
+        self.body[0] = (self.body[0][0] - 10, self.body[0][1])
+        print('[Game] Moving to Left')
+
+    def moveRight(self):
+        self.body[0] = (self.body[0][0] + 10, self.body[0][1])
+        print('[Game] Moving to Right')
+
+    def updatePlayerBody(self):
+        self.move()
+        bodyLength = len(self.body)
+        for i in range(bodyLength-1, 0, -1):
+            previewX = self.body[i-1][0]
+            previewY = self.body[i-1][1]
+            self.body[i] = (previewX, previewY)
 
 class Fruit:
 
@@ -87,32 +143,20 @@ class Game:
         self.runnig = True
 
         self.acceptedMoves = {
-            K_UP:self.moveUp,
-            K_DOWN:self.moveDown,
-            K_LEFT:self.moveLeft,
-            K_RIGHT:self.moveRight,
+            K_UP:UP,
+            K_DOWN:DOWN,
+            K_LEFT:LEFT,
+            K_RIGHT:RIGHT,
         }
     
     def chooseMove(self, command):
         if command.type == KEYDOWN:
-            moveFunc = self.acceptedMoves.get(command.key)
-            try:
-                moveFunc()
+            direction = self.acceptedMoves.get(command.key)
+            if direction != None:
+                self.player.setDirection(direction)
             
-            except TypeError:
+            else:
                 print('[Game] Key not accepted')
-
-    def moveUp(self):
-        print('[Game] Moving to Up')
-
-    def moveDown(self):
-        print('[Game] Moving to Down')
-
-    def moveLeft(self):
-        print('[Game] Moving to Left')
-
-    def moveRight(self):
-        print('[Game] Moving to Right')
 
     def checkCollision(self):
         print('[Game] collision')
@@ -133,11 +177,13 @@ if __name__ == '__main__':
     keyboardInput = KeyboardHandle()
     keyboardInput.subscribe(game.chooseMove)
     keyboardInput.subscribe(game.quitGame)
+    screen.addContext(screen.drawPlayer, game.player)
+    screen.addContext(screen.drawFruit, game.fruit)
 
     while game.runnig:
+        game.clock.tick(10)
         keyboardInput.notifyEvent()
-        screen.drawPlayer(game.player)
-        screen.drawFruit(game.fruit)
+        game.player.updatePlayerBody()
         screen.updateScreen()
 
     pygame.quit()
