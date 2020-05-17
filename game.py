@@ -114,6 +114,9 @@ class Player:
         self.body[0] = (self.body[0][0] + 10, self.body[0][1])
         print('[Game] Moving to Right')
 
+    def extendBody(self):
+        self.body.append((0,0))
+
     def collisionMyself(self):
         head = self.body[0]
         body = self.body
@@ -176,6 +179,7 @@ class Game:
 
         if self.fruitCollision():
             self.randonFruitMove(self.limitX, self.limitY)
+            self.player.extendBody()
             print('[Game] Fruit collision')
 
     def fruitCollision(self):
