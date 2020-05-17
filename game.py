@@ -113,24 +113,35 @@ class Player:
         self.body[0] = (self.body[0][0] + 10, self.body[0][1])
         print('[Game] Moving to Right')
 
+    def collisionMyself(self):
+        head = self.body[0]
+        body = self.body
+        bodyLength = len(body)
+        for i in range(1, bodyLength):
+            if head == body[i]: 
+                return True
+
+        return False
+
     def updatePlayerBody(self):
-        self.move()
         bodyLength = len(self.body)
         for i in range(bodyLength-1, 0, -1):
             previewX = self.body[i-1][0]
             previewY = self.body[i-1][1]
             self.body[i] = (previewX, previewY)
+       
+        self.move()
 
 class Fruit:
 
     def __init__(self, color=RED):
-        posX = 250
-        posY = 250
+        self.posX = 250
+        self.posY = 250
         width = 10
         heigth = 10
-        self.rect = pygame.Rect(posX, posY, 
-                    width, heigth)
         self.color = color
+        self.rect = pygame.Rect(self.posX, self.posY, 
+                    width, heigth)
 
 class Game:
 
@@ -159,7 +170,17 @@ class Game:
                 print('[Game] Key not accepted')
 
     def checkCollision(self):
-        print('[Game] collision')
+        if self.player.collisionMyself():
+            print('[Game] Player collision')
+
+        if self.fruitCollision():
+            print('[Game] Fruit collision')
+
+    def fruitCollision(self):
+        head = self.player.body[0]
+        fruitPos = self.fruit.posX, self.fruit.posY
+        if head == fruitPos:
+            return True
 
     def outLimit(self):
         print('[Game] out')
@@ -183,6 +204,7 @@ if __name__ == '__main__':
     while game.runnig:
         game.clock.tick(10)
         keyboardInput.notifyEvent()
+        game.checkCollision()
         game.player.updatePlayerBody()
         screen.updateScreen()
 
