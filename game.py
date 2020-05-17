@@ -1,5 +1,6 @@
 import pygame 
 from pygame.locals import *
+from random import randint
 
 RIGHT = 0
 LEFT = 1
@@ -29,7 +30,7 @@ class Screen:
 
     def addContext(self, contextFunc, *args):
         self.context[contextFunc] = args
-
+        
     def updateScreen(self):
         self.screen.fill(self.color)
         for drawContextFunc, args in self.context.items():
@@ -81,7 +82,7 @@ class Player:
         self.color = color
         self.skin = pygame.Surface((width,heigth))
         self.skin.fill((color))
-        self.direction = LEFT
+        self.direction = RIGHT
         self.moveTo = {
             UP:self.moveUp,
             DOWN:self.moveDown,
@@ -134,21 +135,21 @@ class Player:
 
 class Fruit:
 
-    def __init__(self, color=RED):
-        self.posX = 250
-        self.posY = 250
+    def __init__(self, posX, posY, color=RED):
         width = 10
         heigth = 10
+        self.posX = posX
+        self.posY = posY
         self.color = color
         self.rect = pygame.Rect(self.posX, self.posY, 
                     width, heigth)
-
+    
 class Game:
 
     def __init__(self, limitX, limitY):
         self.clock = pygame.time.Clock()
         self.player = Player(10,10)
-        self.fruit = Fruit()
+        self.fruit = Fruit(limitX//2, limitY//2)
         self.limitX = limitX
         self.limitY = limitY
         self.runnig = True
@@ -174,6 +175,7 @@ class Game:
             print('[Game] Player collision')
 
         if self.fruitCollision():
+            self.randonFruitMove(self.limitX, self.limitY)
             print('[Game] Fruit collision')
 
     def fruitCollision(self):
@@ -182,6 +184,15 @@ class Game:
         if head == fruitPos:
             return True
 
+        return False
+
+    def randonFruitMove(self, limitX, limitY):
+        x = randint(0, limitX)
+        y = randint(0, limitY)
+        posX, posY = x//10 * 10, y//10 * 10
+        self.fruit = Fruit(posX, posY)
+        
+        
     def outLimit(self):
         print('[Game] out')
 
@@ -205,6 +216,9 @@ if __name__ == '__main__':
         game.clock.tick(10)
         keyboardInput.notifyEvent()
         game.checkCollision()
+        # Para passar pro contexto alterações na posição da fruta devido a colisão
+        #Medida Temporária
+        screen.addContext(screen.drawFruit, game.fruit) 
         game.player.updatePlayerBody()
         screen.updateScreen()
 
